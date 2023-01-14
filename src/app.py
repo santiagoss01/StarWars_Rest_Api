@@ -8,8 +8,8 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
-#from models import Person
+from models import db, User, People, Planets, UserFavoritePlanets, UserFavoritePeople 
+
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -36,14 +36,83 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+
 @app.route('/user', methods=['GET'])
-def handle_hello():
+def get_user():
+    users = User.query.all()
+    # create a list
+    results = []
+    for user in users:
+       results.append(user.serialize())
+
 
     response_body = {
-        "msg": "Hello, this is your GET /user response "
+        'message': 'Ok',
+        'total_records': len(results),
+        'results':results
     }
 
     return jsonify(response_body), 200
+
+
+@app.route('/user', methods=['POST'])
+def post_user():
+    request_body: request.get_json()
+    user =  User(email = request_body['email'],
+                 password = request_body['password'],
+                 is_active = request_body['is_active'])
+    db.session.add(User),
+    db.session.commit
+    return jsonify(request_body), 200
+
+
+@app.route('/people', methods=['GET'])
+def get_people():
+    peoples = People.query.all()
+    # create a list
+    results = []
+    for people in peoples:
+       results.append(people.serialize())    
+    response_body = {'message': 'Ok',
+                     'total_records': len(results),
+                     'results':results}
+    return jsonify(response_body), 200
+
+
+@app.route("/people/<int:people_id>")
+def people_by_id(people_id):
+
+       people = db.get_or_404(People, people_id)
+       results = people.serialize()
+       response_body = {'message': 'Ok',
+                     'total_records': len(results),
+                     'results':results}
+       return jsonify(response_body), 200
+
+
+@app.route('/planets', methods=['GET'])
+def get_planet():
+    planet = Planets.query.all()
+    # create a list
+    results = []
+    for planet in planet:
+       results.append(planet.serialize())    
+    response_body = {'message': 'Ok',
+                     'total_records': len(results),
+                     'results':results}
+    return jsonify(response_body), 200
+
+
+@app.route("/planets/<int:planets_id>")
+def planet_by_id(planets_id):
+
+       planet = db.get_or_404(Planets, planets_id)
+       results = planet.serialize()
+       response_body = {'message': 'Ok',
+                     'total_records': len(results),
+                     'results':results}
+       return jsonify(response_body), 200
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
