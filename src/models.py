@@ -63,21 +63,17 @@ class UserFavoritePlanets(db.Model):
                 "favorite_planet_id": self.id}
     
     
-    
-     
 
+class UserFavoritePeople(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    favorite_people_id = db.Column(db.Integer, db.ForeignKey('people.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False )
 
-# class UserFavoritePeople(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     favorite_people_id = Column(db.Integer, db.ForeignKey('people.id'), unique=True, nullable=False)
-#     user_id = Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False )
-#     user = relationship(User)
+    def __repr__(self):
+        return '<UserFavoritePeople %r>' % self.id
 
-#     def __repr__(self):
-#         return '<UserFavoritePeople %r>' % self.id
-
-#     def serialize(self):
-#         return {"id": self.id,
-#                 "favorite_people_id": self.id}
+    def serialize(self):
+        return {"id": self.id,
+                "favorite_people_id": self.id}
 
 

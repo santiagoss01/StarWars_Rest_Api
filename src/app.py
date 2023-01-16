@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, People, Planets, UserFavoritePlanets 
+from models import db, User, People, Planets, UserFavoritePlanets, UserFavoritePeople 
 
 
 app = Flask(__name__)
@@ -93,19 +93,15 @@ def people_by_id(people_id):
 @app.route('/planets', methods=['GET'])
 def get_planet():
     planet = Planets.query.all()
-    # create a list
-    results = []
-    for planet in planet:
-       results.append(planet.serialize())    
-    response_body = {'message': 'Ok',
-                     'total_records': len(results),
-                     'results':results}
+    results = [planet.serialize() for planet in planets]
+    response_body = {"message": "ok",
+                     "total_records": len(results),
+                     "results": results}
     return jsonify(response_body), 200
 
 
 @app.route("/planets/<int:planets_id>")
 def planet_by_id(planets_id):
-
        planet = db.get_or_404(Planets, planets_id)
        results = planet.serialize()
        response_body = {'message': 'Ok',
@@ -117,7 +113,7 @@ def planet_by_id(planets_id):
 @app.route('/user/favorite-planets/<int:user_id>', methods=['GET'])
 def get_favorite_planet(user_id):
        favorite_planets = db.get_or_404(UserFavoritePlanets, user_id)
-       results = favorite_planets.serialize()
+       results = [favorite_planets.serialize() for favorite in favorite_planets]
        response_body = {'message': 'Ok',
                         'total_records': len(results),
                         'results':results}
@@ -132,6 +128,47 @@ def post_favorite_planet():
          db.session.add(favorite),
          db.session.commit()
          return jsonify(request_body), 200
+
+
+@app.route("/user/favorites-planets/<int:favorite_id>", methods = ["DELETE"])
+def delete_favorite_planet(favorite_id):
+    favorites = UserFavoritesPlanets.query.get(favorite_id)
+    if favorites is None:
+        raise APIException('Favorite not found', status_code=404)
+    db.session.delete(favorites)
+    db.session.commit()
+    return jsonify("Ok"), 200
+
+
+@app.route('/user/favorites-people/<int:user_id>', methods=['GET'])
+def get_favorites_people(user_id):
+    favorites = UserFavoritePeople.query.filter(UserFavoritePeople.user_id == user_id).all()
+    results = [favorite.serialize() for favorite in favorites]
+    response_body = {"message": "ok",
+                     "total_records": len(results),
+                     "results": results}
+    return jsonify(response_body), 200
+
+
+@app.route('/favorite/people', methods=['POST'])
+def add_favorites_people():
+    request_body = request.get_json()
+    favorite = UserFavoritePeople(user_id = request_body['user_id'],
+                                  favorite_people_id = request_body['favorite_people_id'])
+    db.session.add(favorite)
+    db.session.commit()
+    return jsonify(request_body), 200
+
+
+@app.route("/user/favorites-people/<int:favorite_id>", methods = ["DELETE"])
+def delete_favorite_people(favorite_id):
+    favorites = UserFavoritePeople.query.get(favorite_id)
+    if favorites is None:
+        raise APIException('Favorite not found', status_code=404)
+    db.session.delete(favorites)
+    db.session.commit()
+    return jsonify("Ok"), 200
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
