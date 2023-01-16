@@ -44,8 +44,6 @@ def get_user():
     results = []
     for user in users:
        results.append(user.serialize())
-
-
     response_body = {
         'message': 'Ok',
         'total_records': len(results),
@@ -63,6 +61,18 @@ def post_user():
                  is_active = request_body['is_active'])
     db.session.add(User),
     db.session.commit
+    return jsonify(request_body), 200
+
+
+@app.route('/user/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    request_body = request.get_json()
+    user = User.query.get(user_id)
+    if user is None:
+       raise APIException('User not found', status_code=404)
+    if "email" in request_body:
+       user.email = request_body["email"] 
+    db.session.commit()
     return jsonify(request_body), 200
 
 
