@@ -112,8 +112,8 @@ def planet_by_id(planets_id):
 
 @app.route('/user/favorite-planets/<int:user_id>', methods=['GET'])
 def get_favorite_planet(user_id):
-       favorite_planets = db.get_or_404(UserFavoritePlanets, user_id)
-       results = [favorite_planets.serialize() for favorite in favorite_planets]
+       favorites = UserFavoritePlanets.query.filter(UserFavoritePlanets.user_id == user_id).all()
+       results = [favorite.serialize() for favorite in favorites]
        response_body = {'message': 'Ok',
                         'total_records': len(results),
                         'results':results}
